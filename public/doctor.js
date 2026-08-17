@@ -83,11 +83,11 @@
 
     let projects;
     try {
-      projects = await fetchJson('/api/projects');
+      projects = await fetchJson('/api/projects?refresh=1');
       if (projects.ok && Array.isArray(projects.payload?.projects)) {
         const repoErrors = projects.payload.projects.filter((p) => p.github?.error).length;
         checks.push(makeCheck('d1-runtime', 'D1 + Project Brain', 'pass', `${projects.payload.projects.length} projects loaded through D1.`));
-        checks.push(makeCheck('github-read', 'GitHub repository reads', repoErrors === 0 ? 'pass' : 'warn', repoErrors === 0 ? 'Tracked repositories returned GitHub data.' : `${repoErrors} tracked project${repoErrors === 1 ? '' : 's'} could not return full GitHub data.`, 'Open Watchtower to see which repositories need attention; add GITHUB_TOKEN if private repos are involved.'));
+        checks.push(makeCheck('github-read', 'GitHub repository reads', repoErrors === 0 ? 'pass' : 'warn', repoErrors === 0 ? 'Tracked repositories returned fresh GitHub data.' : `${repoErrors} tracked project${repoErrors === 1 ? '' : 's'} could not return full GitHub data.`, 'Open Watchtower to see which repositories need attention; check token repository access if any remain unavailable.'));
       } else {
         checks.push(makeCheck('d1-runtime', 'D1 + Project Brain', 'fail', `/api/projects returned HTTP ${projects.status}.`, 'Check the D1 DB binding and Worker deployment logs.'));
       }
