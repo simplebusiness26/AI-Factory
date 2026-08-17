@@ -6,58 +6,39 @@
   <meta name="theme-color" content="#0b0d10">
   <title>AI Factory — Mission Control</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/watchtower.css">
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">AF</div>
-        <div>
-          <strong>AI Factory</strong>
-          <span>Mission Control</span>
-        </div>
+        <div><strong>AI Factory</strong><span>Mission Control</span></div>
       </div>
 
       <nav class="nav" aria-label="Primary navigation">
-        <button class="nav-item active" data-view="mission">
-          <span class="nav-icon">⌂</span><span>Mission Control</span>
-        </button>
-        <button class="nav-item" data-view="brain">
-          <span class="nav-icon">◎</span><span>Project Brain</span>
-        </button>
-        <button class="nav-item" data-view="systems">
-          <span class="nav-icon">⌘</span><span>Factory Systems</span>
-        </button>
+        <button class="nav-item active" data-view="mission"><span class="nav-icon">⌂</span><span>Mission Control</span></button>
+        <button class="nav-item" data-view="watchtower"><span class="nav-icon">◉</span><span>Watchtower</span></button>
+        <button class="nav-item" data-view="brain"><span class="nav-icon">◎</span><span>Project Brain</span></button>
+        <button class="nav-item" data-view="systems"><span class="nav-icon">⌘</span><span>Factory Systems</span></button>
       </nav>
 
       <div class="sidebar-bottom">
-        <div class="connection" id="connectionStatus">
-          <span class="pulse"></span>
-          <div><strong>Checking GitHub</strong><small>Connecting…</small></div>
-        </div>
+        <div class="connection" id="connectionStatus"><span class="pulse"></span><div><strong>Checking GitHub</strong><small>Connecting…</small></div></div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Toggle menu">☰</button>
-        <div>
-          <p class="eyebrow">CENTRAL NERVOUS SYSTEM</p>
-          <h1 id="pageTitle">Mission Control</h1>
-        </div>
+        <div><p class="eyebrow">CENTRAL NERVOUS SYSTEM</p><h1 id="pageTitle">Mission Control</h1></div>
         <button class="sync-button" id="syncButton"><span>↻</span> Sync GitHub</button>
       </header>
 
       <section id="missionView" class="view active">
         <div class="hero">
-          <div>
-            <p class="hero-kicker">Everything we are building. One place.</p>
-            <h2>Know what is alive, what needs attention and what happens next.</h2>
-          </div>
-          <div class="hero-meta">
-            <span>Last sync</span>
-            <strong id="lastSync">—</strong>
-          </div>
+          <div><p class="hero-kicker">Everything we are building. One place.</p><h2>Know what is alive, what needs attention and what happens next.</h2></div>
+          <div class="hero-meta"><span>Last sync</span><strong id="lastSync">—</strong></div>
         </div>
 
         <section class="stats" aria-label="Factory status">
@@ -69,34 +50,34 @@
 
         <div class="section-heading">
           <div><p class="eyebrow">LIVE PORTFOLIO</p><h3>Projects</h3></div>
-          <div class="filters" id="filters">
-            <button class="filter active" data-filter="all">All</button>
-            <button class="filter" data-filter="active">Active</button>
-            <button class="filter" data-filter="attention">Attention</button>
-          </div>
+          <div class="filters" id="filters"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="active">Active</button><button class="filter" data-filter="attention">Attention</button></div>
         </div>
+        <section class="project-grid" id="projectGrid" aria-live="polite"><div class="loading-card">Reading the factory…</div></section>
+      </section>
 
-        <section class="project-grid" id="projectGrid" aria-live="polite">
-          <div class="loading-card">Reading the factory…</div>
-        </section>
+      <section id="watchtowerView" class="view">
+        <div class="section-heading brain-heading">
+          <div><p class="eyebrow">AUTOMATED OVERSIGHT</p><h3>Watchtower</h3><p>Turns repository, build and blocker signals into a short list of things that actually need attention.</p></div>
+        </div>
+        <section class="watch-stats" id="watchStats"></section>
+        <div class="section-heading"><div><p class="eyebrow">ATTENTION QUEUE</p><h3>What needs action</h3></div></div>
+        <section class="incident-list" id="incidentList"></section>
+        <div class="section-heading"><div><p class="eyebrow">RELEASE FACTORY</p><h3>Latest build state</h3></div></div>
+        <section class="release-list" id="releaseList"></section>
       </section>
 
       <section id="brainView" class="view">
-        <div class="section-heading brain-heading">
-          <div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>GitHub tells us what changed. The brain records why, what's blocked and what comes next.</p></div>
-        </div>
+        <div class="section-heading brain-heading"><div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>GitHub tells us what changed. The brain records why, what's blocked and what comes next.</p></div></div>
         <section class="brain-list" id="brainList"></section>
       </section>
 
       <section id="systemsView" class="view">
-        <div class="section-heading brain-heading">
-          <div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>Mission Control is the first machine. The rest plug into this control layer.</p></div>
-        </div>
+        <div class="section-heading brain-heading"><div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>The machines plug into one shared control layer.</p></div></div>
         <section class="system-grid">
-          <article class="system-card live"><span>01</span><h4>Mission Control</h4><p>Portfolio status, live repository state and project navigation.</p><b>LIVE IN MVP</b></article>
-          <article class="system-card live"><span>02</span><h4>Project Brain</h4><p>Current state, next actions, blockers and permanent decisions.</p><b>LIVE IN MVP</b></article>
-          <article class="system-card"><span>03</span><h4>Watchtower</h4><p>Automated health, drift, dependency and failure detection.</p><b>NEXT</b></article>
-          <article class="system-card"><span>04</span><h4>Release Factory</h4><p>Tests, builds, APKs and releases surfaced in one place.</p><b>QUEUED</b></article>
+          <article class="system-card live"><span>01</span><h4>Mission Control</h4><p>Portfolio status, live repository state and project navigation.</p><b>LIVE</b></article>
+          <article class="system-card live"><span>02</span><h4>Project Brain</h4><p>Current state, next actions, blockers and permanent decisions.</p><b>LIVE</b></article>
+          <article class="system-card live"><span>03</span><h4>Watchtower</h4><p>Automated health and failure detection with a prioritised attention queue.</p><b>BUILT — TESTING</b></article>
+          <article class="system-card live"><span>04</span><h4>Release Factory</h4><p>Latest workflow/build status surfaced across every project.</p><b>PREVIEW BUILT</b></article>
           <article class="system-card"><span>05</span><h4>Decision Engine</h4><p>Compare options, preserve decisions and prevent circular work.</p><b>QUEUED</b></article>
           <article class="system-card"><span>06</span><h4>Knowledge Mine</h4><p>Extract reusable lessons from the work the factory already does.</p><b>QUEUED</b></article>
         </section>
@@ -106,13 +87,9 @@
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="projectDrawer" aria-hidden="true">
-    <div class="drawer-header">
-      <div><p class="eyebrow">PROJECT BRAIN</p><h2 id="drawerTitle">Project</h2></div>
-      <button class="icon-button" id="closeDrawer" aria-label="Close">×</button>
-    </div>
+    <div class="drawer-header"><div><p class="eyebrow">PROJECT BRAIN</p><h2 id="drawerTitle">Project</h2></div><button class="icon-button" id="closeDrawer" aria-label="Close">×</button></div>
     <div class="drawer-body" id="drawerBody"></div>
   </aside>
-
   <div class="toast" id="toast" role="status"></div>
   <script src="/app.js"></script>
 </body>
