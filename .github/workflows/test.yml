@@ -20,4 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
+      - run: npm install
       - run: npm test
+      - run: npx wrangler deploy --dry-run
