@@ -7,7 +7,7 @@
   "workers_dev": true,
   "keep_vars": true,
   "secrets": {
-    "required": ["AI_FACTORY_KEY"]
+    "required": ["AI_FACTORY_KEY", "GITHUB_TOKEN"]
   },
   "observability": {
     "enabled": true,
