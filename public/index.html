@@ -7,6 +7,7 @@
   <title>AI Factory — Mission Control</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/watchtower.css">
+  <link rel="stylesheet" href="/bridge.css">
 </head>
 <body>
   <div class="shell">
@@ -19,6 +20,7 @@
         <button class="nav-item" data-view="today"><span class="nav-icon">✓</span><span>Today</span></button>
         <button class="nav-item" data-view="decision"><span class="nav-icon">◇</span><span>Decision Engine</span></button>
         <button class="nav-item" data-view="knowledge"><span class="nav-icon">✦</span><span>Knowledge Mine</span></button>
+        <button class="nav-item" data-view="bridge"><span class="nav-icon">⇄</span><span>Ghost Writer Bridge</span></button>
         <button class="nav-item" data-view="brain"><span class="nav-icon">◎</span><span>Project Brain</span></button>
         <button class="nav-item" data-view="systems"><span class="nav-icon">⌘</span><span>Factory Systems</span></button>
       </nav>
@@ -89,6 +91,21 @@
         <section class="record-list" id="knowledgeItems"></section>
       </section>
 
+      <section id="bridgeView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">EVIDENCE → CONTENT PIPELINE</p><h3>Ghost Writer Bridge</h3><p>Project evidence is captured in Ghost Writer's Universal Session format. Internal evidence stays private until you explicitly queue it for content.</p></div></div>
+        <div class="bridge-note"><strong>Evidence first. Content second.</strong>GitHub activity, Project Brain updates and decisions enter as internal evidence. Knowledge Mine entries with an explicit content angle are queued automatically. Nothing here publishes anything.</div>
+        <section class="bridge-controls" id="bridgeStats"></section>
+        <section class="form-card bridge-form">
+          <div class="form-grid"><label>Project<select id="bridgeProject"></select></label><label>Title<input id="bridgeTitle" placeholder="e.g. What happened in today's build"></label></div>
+          <div class="form-grid"><label>Truth state<select id="bridgeTruth"><option value="in_progress">In progress</option><option value="tested">Tested</option><option value="completed">Completed</option><option value="planned">Planned</option><option value="idea">Idea</option></select></label><label>Capture as<select id="bridgePrivacy"><option value="internal">Internal evidence</option><option value="content_eligible">Queue for content</option></select></label></div>
+          <label>Evidence / session note<textarea id="bridgeText" placeholder="What actually happened? Keep it factual."></textarea></label>
+          <label>Source reference<input id="bridgeReference" placeholder="Optional GitHub commit, PR, build or other reference"></label>
+          <p class="helper">Choosing “Queue for content” only makes the packet eligible for Ghost Writer. Ghost Writer's security and human approval gates still apply.</p>
+          <button class="primary-button" id="saveBridgeEvent">CAPTURE FOR GHOST WRITER</button>
+        </section>
+        <section class="bridge-list" id="bridgeList"><div class="empty-watch">Open this screen after your write key is configured to load the protected bridge queue.</div></section>
+      </section>
+
       <section id="brainView" class="view">
         <div class="section-heading brain-heading"><div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>Current state, next actions, blockers and permanent decisions.</p></div></div>
         <section class="brain-list" id="brainList"></section>
@@ -103,7 +120,8 @@
           <article class="system-card live"><span>04</span><h4>Today / Priority</h4><p>Daily ordered action list.</p><b>BUILT</b></article>
           <article class="system-card live"><span>05</span><h4>Decision Engine</h4><p>Problems, options and final decisions.</p><b>BUILT</b></article>
           <article class="system-card live"><span>06</span><h4>Knowledge Mine</h4><p>Reusable lessons and content source material.</p><b>BUILT</b></article>
-          <article class="system-card live"><span>07</span><h4>Project Brain</h4><p>Working memory for each product.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>07</span><h4>Ghost Writer Bridge</h4><p>Evidence packets and explicit content queue.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>08</span><h4>Project Brain</h4><p>Working memory for each product.</p><b>BUILT</b></article>
         </section>
       </section>
     </main>
