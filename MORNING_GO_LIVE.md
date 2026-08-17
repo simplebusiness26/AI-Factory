@@ -1,6 +1,6 @@
 # AI Factory — Morning Go-Live Checklist
 
-The code should already be on `main` and Cloudflare should rebuild automatically after the merge. Your job is only to verify the deployment, enable the real URL, and add the two private secrets that make the dashboard fully useful.
+The code should already be on `main` and Cloudflare should rebuild automatically after the merge. Your job is only to verify the deployment, enable the real URL, and add the private settings that make the dashboard fully useful.
 
 ## 1. Confirm Cloudflare deployed `main`
 
@@ -28,7 +28,7 @@ Do not guess the account subdomain.
 6. Open the exact URL Cloudflare displays.
 7. If the old guessed URL still gives `DNS_PROBE_FINISHED_NXDOMAIN`, ignore it and use the exact subdomain shown by Cloudflare.
 
-## 3. Add the write key (required to edit Project Brain, Decision Engine and Knowledge Mine)
+## 3. Add the write key (required for protected factory data and the Ghost Writer bridge)
 
 1. Open **ai-factory > Settings**.
 2. Under **Variables and Secrets**, tap **Add**.
@@ -36,9 +36,9 @@ Do not guess the account subdomain.
 4. Variable name: `AI_FACTORY_KEY`
 5. Value: create a long unique random passphrase/password that only you know.
 6. Save and **Deploy** the change.
-7. Do not commit this value to GitHub.
+7. Do not commit this value to GitHub or paste it into public content.
 
-The first time you save something in AI Factory, the site will ask for this key. It is kept in your browser session, not displayed in the repository.
+The first time you save something or open the protected Ghost Writer Bridge, the site will ask for this key. It is kept in your browser session.
 
 ## 4. Optional: add a GitHub read token for private repos and fuller build data
 
@@ -62,10 +62,41 @@ Open the AI Factory URL and check these in order:
 3. **Release Factory** — build state loads; release/APK links appear when a repo has them.
 4. **Today / Priority** — ordered daily list appears.
 5. **Decision Engine** — create one small test decision case and save it.
-6. **Knowledge Mine** — save one test lesson.
-7. **Project Brain** — open AI Factory, change a next action, save it, refresh, and confirm it stayed saved.
+6. **Knowledge Mine** — save one test lesson. Add a **Content angle** if you want that lesson automatically queued for Ghost Writer.
+7. **Ghost Writer Bridge** — open it, enter `AI_FACTORY_KEY` when prompted, confirm captured GitHub/project evidence appears, and queue one safe test packet for content.
+8. **Project Brain** — open AI Factory, change a next action, save it, refresh, and confirm it stayed saved. That update should also appear in the bridge as internal evidence.
 
-## 6. Health check if the UI looks broken
+## 6. How the Ghost Writer Bridge works
+
+The bridge follows Ghost Writer's existing Universal Session contract rather than inventing a second format.
+
+It captures:
+
+- latest GitHub commit/build evidence from tracked projects;
+- Project Brain updates;
+- Decision Engine records;
+- per-project decision-log entries;
+- Knowledge Mine lessons;
+- manual evidence/session notes entered on the Bridge screen.
+
+Safety / truth rules:
+
+- GitHub and Project Brain evidence is **internal by default**.
+- A passing build is recorded as **tested**, not as proof that the whole project is complete.
+- Decision records are internal evidence.
+- Knowledge Mine items only become automatically content-eligible when you explicitly add a **Content angle**.
+- Internal packets must be explicitly changed to **Queue for content** before Ghost Writer can treat them as content material.
+- Obvious credentials and secret assignments are redacted before bridge storage.
+- The bridge does **not** publish anything.
+- The bridge does **not** require the OpenAI API. It is the evidence/queue layer between AI Factory and Ghost Writer.
+
+The protected consumer endpoint for the future Ghost Writer runner is:
+
+`https://<YOUR-AI-FACTORY-URL>/api/ghostwriter-bridge/queue`
+
+It returns queued packets in the same shape Ghost Writer's Universal Session Ingestor expects. It requires `AI_FACTORY_KEY`.
+
+## 7. Health check if the UI looks broken
 
 Open:
 
@@ -76,11 +107,11 @@ Expected result includes:
 - `ok: true`
 - `runtime: cloudflare-workers`
 - `database: d1`
-- systems including Mission Control, Watchtower, Release Factory, Today, Decision Engine and Knowledge Mine
+- systems including Mission Control, Watchtower, Release Factory, Today, Decision Engine, Knowledge Mine and Ghost Writer Bridge
 
 If `/api/health` works but the dashboard does not, the problem is the static UI. If `/api/health` fails too, check the latest Cloudflare build/deployment logs.
 
-## 7. What each system does
+## 8. What each system does
 
 - **Mission Control** — one view of every tracked project.
 - **Watchtower** — automatically flags failed builds, unavailable repos, stale work and blockers.
@@ -88,8 +119,9 @@ If `/api/health` works but the dashboard does not, the problem is the static UI.
 - **Today / Priority** — converts incidents, blockers and next actions into the top daily action list.
 - **Decision Engine** — stores problem, options, recommendation, final decision and reason.
 - **Knowledge Mine** — stores what happened, lesson learned, reusable principle and content angle.
+- **Ghost Writer Bridge** — turns verified factory activity into protected, deduplicated Ghost Writer evidence packets and an explicit content queue.
 - **Project Brain** — working memory for each product: current state, next actions, blockers and permanent decisions.
 
-## 8. What is deliberately NOT automatic yet
+## 9. What is deliberately NOT automatic yet
 
-This MVP does not use the OpenAI API or paid background agents. It uses GitHub + Cloudflare + deterministic rules so it stays cheap/free. Future automation can be added on top once the control system is stable.
+This AI Factory MVP does not use the OpenAI API or paid background agents. GitHub + Cloudflare + deterministic rules capture and organise the evidence cheaply. Ghost Writer publishing still remains behind its own security and human-approval gates.
