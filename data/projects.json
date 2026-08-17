@@ -1,0 +1,122 @@
+{
+  "projects": [
+    {
+      "id": "ai-factory",
+      "name": "AI Factory",
+      "repo": "simplebusiness26/AI-Factory",
+      "purpose": "Central operating system for projects, agents, decisions, health and releases.",
+      "stage": "MVP",
+      "brain": {
+        "currentState": "Mission Control + Project Brain MVP is being built.",
+        "nextActions": [
+          "Validate the Mission Control dashboard",
+          "Connect project health and build signals",
+          "Add Watchtower and Release Factory after the core is stable"
+        ],
+        "blockers": [],
+        "decisions": [
+          {
+            "date": "2026-08-17",
+            "title": "Start with the central nervous system",
+            "decision": "Build Mission Control + Project Brain before the rest of the factory systems.",
+            "reason": "The other systems need one shared source of truth and control surface."
+          }
+        ]
+      }
+    },
+    {
+      "id": "xplorer",
+      "name": "Xplorer",
+      "repo": "simplebusiness26/The-App",
+      "purpose": "Social discovery, planning and real-world activity app.",
+      "stage": "Active build",
+      "brain": {
+        "currentState": "Core product is under active feature, UX and design development.",
+        "nextActions": [
+          "Keep functionality and design work aligned with the actual app",
+          "Surface build/test health in Mission Control"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    },
+    {
+      "id": "livepark",
+      "name": "LivePark",
+      "repo": "simplebusiness26/LivePark",
+      "purpose": "Real-time parking marketplace with live availability and booking.",
+      "stage": "MVP",
+      "brain": {
+        "currentState": "MVP development and deployment hardening are active.",
+        "nextActions": [
+          "Surface APK/build health",
+          "Track infrastructure and database readiness"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    },
+    {
+      "id": "clipmine",
+      "name": "ClipMine",
+      "repo": "simplebusiness26/ClipMine",
+      "purpose": "Turn long videos or URLs into short-form social clips.",
+      "stage": "MVP",
+      "brain": {
+        "currentState": "Processing pipeline, hosting and product completion are the active focus.",
+        "nextActions": [
+          "Track backend deployment readiness",
+          "Track URL ingest and upload support"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    },
+    {
+      "id": "designlab",
+      "name": "DesignLab",
+      "repo": "simplebusiness26/DesignLab",
+      "purpose": "Code-aware UI/UX tournament that produces functional design variants.",
+      "stage": "Active build",
+      "brain": {
+        "currentState": "Design tournament architecture and cost-efficient model routing are being refined.",
+        "nextActions": [
+          "Keep design variants tied to real functionality",
+          "Reduce expensive model usage without reducing final quality"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    },
+    {
+      "id": "devcouncil",
+      "name": "DevCouncil",
+      "repo": "simplebusiness26/DevCouncil-",
+      "purpose": "Specialist engineering agents coordinated by a lead engineering agent.",
+      "stage": "Foundation",
+      "brain": {
+        "currentState": "Lead-agent and specialist-agent foundations are being developed.",
+        "nextActions": [
+          "Connect DevCouncil into AI Factory as the engineering department"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    },
+    {
+      "id": "ghost-writer",
+      "name": "The Ghost Writer",
+      "repo": "simplebusiness26/TheGhostWriter",
+      "purpose": "Agentic content system that turns source material and knowledge into platform-ready content.",
+      "stage": "Foundation",
+      "brain": {
+        "currentState": "Agent workflow is being built as a working internal system first.",
+        "nextActions": [
+          "Connect future Knowledge Mine outputs into the writing workflow"
+        ],
+        "blockers": [],
+        "decisions": []
+      }
+    }
+  ]
+}
