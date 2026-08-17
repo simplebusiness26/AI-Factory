@@ -6,113 +6,111 @@
   <meta name="theme-color" content="#0b0d10">
   <title>AI Factory — Mission Control</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/watchtower.css">
 </head>
 <body>
   <div class="shell">
     <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark">AF</div>
-        <div>
-          <strong>AI Factory</strong>
-          <span>Mission Control</span>
-        </div>
-      </div>
-
+      <div class="brand"><div class="brand-mark">AF</div><div><strong>AI Factory</strong><span>Mission Control</span></div></div>
       <nav class="nav" aria-label="Primary navigation">
-        <button class="nav-item active" data-view="mission">
-          <span class="nav-icon">⌂</span><span>Mission Control</span>
-        </button>
-        <button class="nav-item" data-view="brain">
-          <span class="nav-icon">◎</span><span>Project Brain</span>
-        </button>
-        <button class="nav-item" data-view="systems">
-          <span class="nav-icon">⌘</span><span>Factory Systems</span>
-        </button>
+        <button class="nav-item active" data-view="mission"><span class="nav-icon">⌂</span><span>Mission Control</span></button>
+        <button class="nav-item" data-view="watchtower"><span class="nav-icon">◉</span><span>Watchtower</span></button>
+        <button class="nav-item" data-view="release"><span class="nav-icon">⇧</span><span>Release Factory</span></button>
+        <button class="nav-item" data-view="today"><span class="nav-icon">✓</span><span>Today</span></button>
+        <button class="nav-item" data-view="decision"><span class="nav-icon">◇</span><span>Decision Engine</span></button>
+        <button class="nav-item" data-view="knowledge"><span class="nav-icon">✦</span><span>Knowledge Mine</span></button>
+        <button class="nav-item" data-view="brain"><span class="nav-icon">◎</span><span>Project Brain</span></button>
+        <button class="nav-item" data-view="systems"><span class="nav-icon">⌘</span><span>Factory Systems</span></button>
       </nav>
-
-      <div class="sidebar-bottom">
-        <div class="connection" id="connectionStatus">
-          <span class="pulse"></span>
-          <div><strong>Checking GitHub</strong><small>Connecting…</small></div>
-        </div>
-      </div>
+      <div class="sidebar-bottom"><div class="connection" id="connectionStatus"><span class="pulse"></span><div><strong>Checking GitHub</strong><small>Connecting…</small></div></div></div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <button class="mobile-menu" id="mobileMenu" aria-label="Toggle menu">☰</button>
-        <div>
-          <p class="eyebrow">CENTRAL NERVOUS SYSTEM</p>
-          <h1 id="pageTitle">Mission Control</h1>
-        </div>
-        <button class="sync-button" id="syncButton"><span>↻</span> Sync GitHub</button>
+        <div><p class="eyebrow">CENTRAL NERVOUS SYSTEM</p><h1 id="pageTitle">Mission Control</h1></div>
+        <button class="sync-button" id="syncButton"><span>↻</span> Sync</button>
       </header>
 
       <section id="missionView" class="view active">
-        <div class="hero">
-          <div>
-            <p class="hero-kicker">Everything we are building. One place.</p>
-            <h2>Know what is alive, what needs attention and what happens next.</h2>
-          </div>
-          <div class="hero-meta">
-            <span>Last sync</span>
-            <strong id="lastSync">—</strong>
-          </div>
-        </div>
-
+        <div class="hero"><div><p class="hero-kicker">Everything we are building. One place.</p><h2>Know what is alive, what needs attention and what happens next.</h2></div><div class="hero-meta"><span>Last sync</span><strong id="lastSync">—</strong></div></div>
         <section class="stats" aria-label="Factory status">
           <article class="stat-card"><span>Total projects</span><strong id="statTotal">—</strong><small>tracked by the factory</small></article>
           <article class="stat-card"><span>Active</span><strong id="statActive">—</strong><small>recent GitHub activity</small></article>
           <article class="stat-card"><span>Needs attention</span><strong id="statAttention">—</strong><small>stale, blocked or unreachable</small></article>
           <article class="stat-card"><span>Blockers</span><strong id="statBlockers">—</strong><small>recorded in Project Brain</small></article>
         </section>
+        <div class="section-heading"><div><p class="eyebrow">LIVE PORTFOLIO</p><h3>Projects</h3></div><div class="filters" id="filters"><button class="filter active" data-filter="all">All</button><button class="filter" data-filter="active">Active</button><button class="filter" data-filter="attention">Attention</button></div></div>
+        <section class="project-grid" id="projectGrid" aria-live="polite"><div class="loading-card">Reading the factory…</div></section>
+      </section>
 
-        <div class="section-heading">
-          <div><p class="eyebrow">LIVE PORTFOLIO</p><h3>Projects</h3></div>
-          <div class="filters" id="filters">
-            <button class="filter active" data-filter="all">All</button>
-            <button class="filter" data-filter="active">Active</button>
-            <button class="filter" data-filter="attention">Attention</button>
-          </div>
-        </div>
+      <section id="watchtowerView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">AUTOMATED OVERSIGHT</p><h3>Watchtower</h3><p>Repository, build and blocker signals converted into a prioritised attention queue.</p></div></div>
+        <section class="watch-stats" id="watchStats"></section>
+        <section class="incident-list" id="incidentList"></section>
+      </section>
 
-        <section class="project-grid" id="projectGrid" aria-live="polite">
-          <div class="loading-card">Reading the factory…</div>
+      <section id="releaseView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">BUILD + APK CONTROL</p><h3>Release Factory</h3><p>Latest workflow state, release links and APKs in one place.</p></div></div>
+        <section class="watch-stats" id="releaseStats"></section>
+        <section class="release-list" id="releaseList"></section>
+      </section>
+
+      <section id="todayView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">DAILY CONTROL SURFACE</p><h3>Today / Priority</h3><p>The smallest ordered list of things that move the factory forward today.</p></div></div>
+        <section class="today-summary" id="todaySummary"></section>
+        <section class="today-list" id="todayList"></section>
+      </section>
+
+      <section id="decisionView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">STOP GOING IN CIRCLES</p><h3>Decision Engine</h3><p>Record the problem, options, recommendation and final decision so we do not re-litigate old choices.</p></div></div>
+        <section class="form-card">
+          <div class="form-grid"><label>Project<select id="decisionProject"></select></label><label>Decision title<input id="decisionTitleMain" placeholder="e.g. Hosting architecture"></label></div>
+          <label>Problem<textarea id="decisionProblem" placeholder="What are we deciding?"></textarea></label>
+          <label>Options<textarea id="decisionOptions" placeholder="One option per line"></textarea></label>
+          <label>Recommendation<textarea id="decisionRecommendation" placeholder="Best option and why"></textarea></label>
+          <label>Final decision<textarea id="decisionFinal" placeholder="Leave blank if still open"></textarea></label>
+          <label>Reason<textarea id="decisionReasonMain" placeholder="Why this decision was made"></textarea></label>
+          <button class="primary-button" id="saveDecisionCase">SAVE DECISION CASE</button>
         </section>
+        <section class="record-list" id="decisionCases"></section>
+      </section>
+
+      <section id="knowledgeView" class="view">
+        <div class="section-heading brain-heading"><div><p class="eyebrow">TURN WORK INTO ASSETS</p><h3>Knowledge Mine</h3><p>Capture what happened, what we learned, the reusable principle and the content angle.</p></div></div>
+        <section class="form-card">
+          <div class="form-grid"><label>Project<select id="knowledgeProject"></select></label><label>Lesson title<input id="knowledgeTitle" placeholder="e.g. Successful build ≠ working app"></label></div>
+          <label>Problem / event<textarea id="knowledgeProblem" placeholder="What happened?"></textarea></label>
+          <label>Lesson<textarea id="knowledgeLesson" placeholder="What did we learn?"></textarea></label>
+          <label>Reusable principle<textarea id="knowledgePrinciple" placeholder="What general rule comes from this?"></textarea></label>
+          <label>Content angle<textarea id="knowledgeContent" placeholder="How could Locked Up With AI teach this simply?"></textarea></label>
+          <button class="primary-button" id="saveKnowledge">SAVE KNOWLEDGE</button>
+        </section>
+        <section class="record-list" id="knowledgeItems"></section>
       </section>
 
       <section id="brainView" class="view">
-        <div class="section-heading brain-heading">
-          <div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>GitHub tells us what changed. The brain records why, what's blocked and what comes next.</p></div>
-        </div>
+        <div class="section-heading brain-heading"><div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>Current state, next actions, blockers and permanent decisions.</p></div></div>
         <section class="brain-list" id="brainList"></section>
       </section>
 
       <section id="systemsView" class="view">
-        <div class="section-heading brain-heading">
-          <div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>Mission Control is the first machine. The rest plug into this control layer.</p></div>
-        </div>
+        <div class="section-heading brain-heading"><div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>The first complete operating loop is now assembled.</p></div></div>
         <section class="system-grid">
-          <article class="system-card live"><span>01</span><h4>Mission Control</h4><p>Portfolio status, live repository state and project navigation.</p><b>LIVE IN MVP</b></article>
-          <article class="system-card live"><span>02</span><h4>Project Brain</h4><p>Current state, next actions, blockers and permanent decisions.</p><b>LIVE IN MVP</b></article>
-          <article class="system-card"><span>03</span><h4>Watchtower</h4><p>Automated health, drift, dependency and failure detection.</p><b>NEXT</b></article>
-          <article class="system-card"><span>04</span><h4>Release Factory</h4><p>Tests, builds, APKs and releases surfaced in one place.</p><b>QUEUED</b></article>
-          <article class="system-card"><span>05</span><h4>Decision Engine</h4><p>Compare options, preserve decisions and prevent circular work.</p><b>QUEUED</b></article>
-          <article class="system-card"><span>06</span><h4>Knowledge Mine</h4><p>Extract reusable lessons from the work the factory already does.</p><b>QUEUED</b></article>
+          <article class="system-card live"><span>01</span><h4>Mission Control</h4><p>Portfolio status and project navigation.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>02</span><h4>Watchtower</h4><p>Health and failure detection.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>03</span><h4>Release Factory</h4><p>Build, release and APK visibility.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>04</span><h4>Today / Priority</h4><p>Daily ordered action list.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>05</span><h4>Decision Engine</h4><p>Problems, options and final decisions.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>06</span><h4>Knowledge Mine</h4><p>Reusable lessons and content source material.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>07</span><h4>Project Brain</h4><p>Working memory for each product.</p><b>BUILT</b></article>
         </section>
       </section>
     </main>
   </div>
 
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="projectDrawer" aria-hidden="true">
-    <div class="drawer-header">
-      <div><p class="eyebrow">PROJECT BRAIN</p><h2 id="drawerTitle">Project</h2></div>
-      <button class="icon-button" id="closeDrawer" aria-label="Close">×</button>
-    </div>
-    <div class="drawer-body" id="drawerBody"></div>
-  </aside>
-
+  <aside class="drawer" id="projectDrawer" aria-hidden="true"><div class="drawer-header"><div><p class="eyebrow">PROJECT BRAIN</p><h2 id="drawerTitle">Project</h2></div><button class="icon-button" id="closeDrawer" aria-label="Close">×</button></div><div class="drawer-body" id="drawerBody"></div></aside>
   <div class="toast" id="toast" role="status"></div>
   <script src="/app.js"></script>
 </body>
