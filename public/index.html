@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/watchtower.css">
   <link rel="stylesheet" href="/bridge.css">
+  <link rel="stylesheet" href="/doctor.css">
 </head>
 <body>
   <div class="shell">
@@ -21,6 +22,7 @@
         <button class="nav-item" data-view="decision"><span class="nav-icon">◇</span><span>Decision Engine</span></button>
         <button class="nav-item" data-view="knowledge"><span class="nav-icon">✦</span><span>Knowledge Mine</span></button>
         <button class="nav-item" data-view="bridge"><span class="nav-icon">⇄</span><span>Ghost Writer Bridge</span></button>
+        <button class="nav-item" data-view="doctor"><span class="nav-icon">＋</span><span>Deployment Doctor</span></button>
         <button class="nav-item" data-view="brain"><span class="nav-icon">◎</span><span>Project Brain</span></button>
         <button class="nav-item" data-view="systems"><span class="nav-icon">⌘</span><span>Factory Systems</span></button>
       </nav>
@@ -106,13 +108,26 @@
         <section class="bridge-list" id="bridgeList"><div class="empty-watch">Open this screen after your write key is configured to load the protected bridge queue.</div></section>
       </section>
 
+      <section id="doctorView" class="view">
+        <div class="doctor-hero">
+          <div class="section-heading brain-heading"><div><p class="eyebrow">ONE-TAP GO-LIVE DIAGNOSIS</p><h3>Deployment Doctor</h3><p>Checks the live factory itself and tells you exactly which layer is working, missing or broken.</p></div></div>
+          <div class="doctor-host-card"><span>Current host</span><strong id="doctorHost">—</strong></div>
+        </div>
+        <span class="doctor-overall setup" id="doctorOverall">NOT RUN</span>
+        <section class="doctor-summary" id="doctorSummary"><div><strong>—</strong><span>passing</span></div><div><strong>—</strong><span>warnings</span></div><div><strong>—</strong><span>failures</span></div></section>
+        <div class="doctor-toolbar"><button class="primary-button" id="runDoctor">RUN DEPLOYMENT DOCTOR</button><button class="secondary-button" id="doctorWriteKey">ENTER WRITE KEY</button><button class="secondary-button" id="copyDoctorReport">COPY REPORT</button></div>
+        <div class="doctor-next" id="doctorNext"><strong>What this will tell you</strong><p>Whether the route, Worker API, D1, GitHub reads, write protection, Decision Engine, Knowledge Mine and Ghost Writer Bridge are actually working.</p></div>
+        <section class="doctor-checks" id="doctorChecks"><div class="doctor-loading">Tap RUN DEPLOYMENT DOCTOR.</div></section>
+        <div class="doctor-explainer"><strong>Important</strong>Deployment Doctor never displays your secrets. The write key is kept only in this browser session and is sent only to the protected AI Factory endpoints when you run the checks.</div>
+      </section>
+
       <section id="brainView" class="view">
         <div class="section-heading brain-heading"><div><p class="eyebrow">HUMAN CONTEXT</p><h3>Project Brain</h3><p>Current state, next actions, blockers and permanent decisions.</p></div></div>
         <section class="brain-list" id="brainList"></section>
       </section>
 
       <section id="systemsView" class="view">
-        <div class="section-heading brain-heading"><div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>The first complete operating loop is now assembled.</p></div></div>
+        <div class="section-heading brain-heading"><div><p class="eyebrow">FACTORY ROADMAP</p><h3>Systems</h3><p>The first operating loop is assembled and can diagnose its own deployment.</p></div></div>
         <section class="system-grid">
           <article class="system-card live"><span>01</span><h4>Mission Control</h4><p>Portfolio status and project navigation.</p><b>BUILT</b></article>
           <article class="system-card live"><span>02</span><h4>Watchtower</h4><p>Health and failure detection.</p><b>BUILT</b></article>
@@ -121,7 +136,8 @@
           <article class="system-card live"><span>05</span><h4>Decision Engine</h4><p>Problems, options and final decisions.</p><b>BUILT</b></article>
           <article class="system-card live"><span>06</span><h4>Knowledge Mine</h4><p>Reusable lessons and content source material.</p><b>BUILT</b></article>
           <article class="system-card live"><span>07</span><h4>Ghost Writer Bridge</h4><p>Evidence packets and explicit content queue.</p><b>BUILT</b></article>
-          <article class="system-card live"><span>08</span><h4>Project Brain</h4><p>Working memory for each product.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>08</span><h4>Deployment Doctor</h4><p>Route, API, D1, GitHub, key and bridge diagnosis.</p><b>BUILT</b></article>
+          <article class="system-card live"><span>09</span><h4>Project Brain</h4><p>Working memory for each product.</p><b>BUILT</b></article>
         </section>
       </section>
     </main>
@@ -131,5 +147,6 @@
   <aside class="drawer" id="projectDrawer" aria-hidden="true"><div class="drawer-header"><div><p class="eyebrow">PROJECT BRAIN</p><h2 id="drawerTitle">Project</h2></div><button class="icon-button" id="closeDrawer" aria-label="Close">×</button></div><div class="drawer-body" id="drawerBody"></div></aside>
   <div class="toast" id="toast" role="status"></div>
   <script src="/app.js"></script>
+  <script src="/doctor.js"></script>
 </body>
 </html>
