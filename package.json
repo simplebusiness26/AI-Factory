@@ -1,13 +1,17 @@
 {
   "name": "ai-factory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Mission Control + Project Brain for the AI Factory",
-  "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js",
+    "dev": "wrangler dev",
+    "dev:node": "node --watch server.js",
+    "deploy": "wrangler deploy",
     "test": "node --test"
+  },
+  "devDependencies": {
+    "wrangler": "latest"
   },
   "engines": {
     "node": ">=20"
