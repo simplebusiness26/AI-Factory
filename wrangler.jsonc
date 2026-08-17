@@ -5,6 +5,10 @@
   "compatibility_date": "2026-08-17",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "keep_vars": true,
+  "secrets": {
+    "required": ["AI_FACTORY_KEY"]
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
