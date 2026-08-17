@@ -1,357 +1,58 @@
 'use strict';
 
-const state = {
-  projects: [],
-  summary: null,
-  filter: 'all',
-  selectedId: null
-};
+const state={projects:[],summary:{},watchtower:{},releases:{},today:{},decisions:[],knowledge:[],filter:'all',selectedId:null};
+const byId=id=>document.getElementById(id);
+const els={projectGrid:byId('projectGrid'),brainList:byId('brainList'),syncButton:byId('syncButton'),lastSync:byId('lastSync'),connection:byId('connectionStatus'),drawer:byId('projectDrawer'),drawerBackdrop:byId('drawerBackdrop'),drawerTitle:byId('drawerTitle'),drawerBody:byId('drawerBody'),closeDrawer:byId('closeDrawer'),toast:byId('toast'),mobileMenu:byId('mobileMenu'),sidebar:document.querySelector('.sidebar'),pageTitle:byId('pageTitle')};
 
-const els = {
-  projectGrid: document.getElementById('projectGrid'),
-  brainList: document.getElementById('brainList'),
-  syncButton: document.getElementById('syncButton'),
-  lastSync: document.getElementById('lastSync'),
-  connection: document.getElementById('connectionStatus'),
-  drawer: document.getElementById('projectDrawer'),
-  drawerBackdrop: document.getElementById('drawerBackdrop'),
-  drawerTitle: document.getElementById('drawerTitle'),
-  drawerBody: document.getElementById('drawerBody'),
-  closeDrawer: document.getElementById('closeDrawer'),
-  toast: document.getElementById('toast'),
-  mobileMenu: document.getElementById('mobileMenu'),
-  sidebar: document.querySelector('.sidebar'),
-  pageTitle: document.getElementById('pageTitle')
-};
+function escapeHtml(value){return String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')}
+function formatRelative(value){if(!value)return'No activity';const date=new Date(value);if(Number.isNaN(date.getTime()))return'Unknown';const seconds=Math.max(0,Math.floor((Date.now()-date.getTime())/1000));if(seconds<60)return'just now';const minutes=Math.floor(seconds/60);if(minutes<60)return`${minutes}m ago`;const hours=Math.floor(minutes/60);if(hours<24)return`${hours}h ago`;const days=Math.floor(hours/24);if(days<30)return`${days}d ago`;return date.toLocaleDateString(undefined,{day:'numeric',month:'short'})}
+function formatDate(value){if(!value)return'—';const date=new Date(value);if(Number.isNaN(date.getTime()))return'—';return date.toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}
+function lines(value){return String(value||'').split('\n').map(v=>v.trim()).filter(Boolean)}
+function projectName(id){return state.projects.find(p=>p.id===id)?.name||id||'Factory'}
 
-function escapeHtml(value) {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+async function api(url,options={},retried=false){const headers={...(options.headers||{})};if(options.body)headers['content-type']='application/json';const key=sessionStorage.getItem('aiFactoryKey');if(key)headers['x-ai-factory-key']=key;const response=await fetch(url,{...options,headers});let payload={};try{payload=await response.json()}catch{}if(response.status===401&&!retried){const entered=window.prompt('Enter the AI Factory write key:');if(entered){sessionStorage.setItem('aiFactoryKey',entered);return api(url,options,true)}}if(!response.ok)throw new Error(payload.error||`Request failed (${response.status})`);return payload}
+function toast(message){els.toast.textContent=message;els.toast.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>els.toast.classList.remove('show'),2600)}
 
-function formatRelative(value) {
-  if (!value) return 'No activity';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Unknown';
-  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-  if (seconds < 60) return 'just now';
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-}
+function attentionNeeded(project){return['stale','unavailable'].includes(project.github?.activity)||(project.brain?.blockers||[]).length>0||project.github?.build?.conclusion==='failure'}
+function visibleProjects(){if(state.filter==='active')return state.projects.filter(p=>['active','warm'].includes(p.github?.activity));if(state.filter==='attention')return state.projects.filter(attentionNeeded);return state.projects}
+function buildStatusText(build){if(!build)return'Unknown';if(build.conclusion)return build.conclusion;if(build.status==='not-checked')return'Limited';return build.status||'Unknown'}
 
-function formatDate(value) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-}
+function projectCard(project){const gh=project.github||{};const activity=gh.activity||'unknown';const commit=gh.latestCommit;const blockers=project.brain?.blockers?.length||0;const attention=gh.build?.conclusion==='failure'?'Build failed':blockers?`${blockers} blocker${blockers===1?'':'s'}`:`${gh.openItems??'—'} open items`;return `<article class="project-card" data-project="${escapeHtml(project.id)}" tabindex="0" role="button"><div class="project-top"><div class="project-name"><span class="project-stage">${escapeHtml(project.stage)}</span><h4>${escapeHtml(project.name)}</h4></div><span class="status-pill status-${escapeHtml(activity)}"><i class="status-dot"></i>${escapeHtml(activity)}</span></div><p class="project-purpose">${escapeHtml(project.purpose)}</p>${gh.error?`<div class="error-note">${escapeHtml(gh.error)}</div>`:`<div class="project-facts"><div class="fact"><span>Branch</span><b>${escapeHtml(gh.defaultBranch||'—')}</b></div><div class="fact"><span>Build</span><b>${escapeHtml(buildStatusText(gh.build))}</b></div><div class="fact"><span>Attention</span><b>${escapeHtml(attention)}</b></div></div><div class="project-footer"><div class="commit-line">${commit?`<code>${escapeHtml(commit.shortSha)}</code> · ${escapeHtml(commit.message)}`:'No commit data'}</div><span class="open-brain">OPEN →</span></div>`}</article>`}
+function renderProjects(){const projects=visibleProjects();els.projectGrid.innerHTML=projects.length?projects.map(projectCard).join(''):'<div class="empty-state">No projects match this view.</div>'}
+function renderSummary(){const s=state.summary||{};byId('statTotal').textContent=s.total??'—';byId('statActive').textContent=s.active??'—';byId('statAttention').textContent=s.attention??'—';byId('statBlockers').textContent=s.blockers??'—';els.lastSync.textContent=s.lastSynced?formatDate(s.lastSynced):'—';const auth=Boolean(s.githubAuthenticated);els.connection.className=`connection ${auth?'connected':'limited'}`;els.connection.innerHTML=`<span class="pulse"></span><div><strong>${auth?'GitHub token active':'GitHub public mode'}</strong><small>${auth?'Private repos + fuller build data':'Public repos work; add token for private repos'}</small></div>`}
 
-function lines(value) {
-  return String(value || '').split('\n').map(item => item.trim()).filter(Boolean);
-}
+function renderBrainList(){els.brainList.innerHTML=state.projects.map(project=>{const blockers=project.brain?.blockers?.length||0;const next=project.brain?.nextActions?.[0]||'No next action recorded';return `<article class="brain-row" data-project="${escapeHtml(project.id)}" tabindex="0" role="button"><div><h4>${escapeHtml(project.name)}</h4><small>${escapeHtml(project.stage)}</small></div><p class="brain-state">${escapeHtml(project.brain?.currentState||'No state recorded.')}</p><p class="brain-next">Next: ${escapeHtml(next)}</p><div class="brain-count"><b>${blockers}</b> blockers</div></article>`}).join('')}
 
-async function api(url, options = {}, retried = false) {
-  const headers = { ...(options.headers || {}) };
-  if (options.body) headers['content-type'] = 'application/json';
-  const key = sessionStorage.getItem('aiFactoryKey');
-  if (key) headers['x-ai-factory-key'] = key;
+function renderWatchtower(){const w=state.watchtower||{};byId('watchStats').innerHTML=[['Factory status',w.status||'unknown'],['Projects checked',w.projectsChecked??0],['Need attention',w.projectsNeedingAttention??0],['Critical',w.criticalCount??0]].map(([label,value])=>`<article class="watch-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join('');const incidents=w.incidents||[];byId('incidentList').innerHTML=incidents.length?incidents.map(item=>`<article class="incident-row" data-project="${escapeHtml(item.projectId||'')}"><span class="severity severity-${escapeHtml(item.severity)}">${escapeHtml(item.severity)}</span><div class="incident-copy"><strong>${escapeHtml(item.projectName||'Factory')} — ${escapeHtml(item.message)}</strong><small>${escapeHtml(Array.isArray(item.detail)?item.detail.join(' · '):(item.detail||item.code||''))}</small></div><button class="secondary-button mini-open" data-project="${escapeHtml(item.projectId||'')}">Open</button></article>`).join(''):'<div class="empty-watch">Watchtower is clear. No incidents need attention.</div>'}
 
-  const response = await fetch(url, { ...options, headers });
-  let payload = {};
-  try { payload = await response.json(); } catch (_) {}
+function renderReleases(){const r=state.releases||{};byId('releaseStats').innerHTML=[['Passing',r.passing??0],['Failing',r.failing??0],['Running',r.running??0],['APKs found',r.withApk??0]].map(([label,value])=>`<article class="watch-card"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></article>`).join('');const projects=r.projects||[];byId('releaseList').innerHTML=projects.map(item=>{const stateText=item.buildState||'unknown';const links=[];if(item.buildUrl)links.push(`<a class="release-link" target="_blank" rel="noopener" href="${escapeHtml(item.buildUrl)}">Build</a>`);if(item.releaseUrl)links.push(`<a class="release-link" target="_blank" rel="noopener" href="${escapeHtml(item.releaseUrl)}">Release</a>`);if(item.apk?.url)links.push(`<a class="release-link" target="_blank" rel="noopener" href="${escapeHtml(item.apk.url)}">APK</a>`);return `<article class="release-row"><div class="release-copy"><strong>${escapeHtml(item.projectName)}</strong><small>${escapeHtml(item.buildName||'No workflow name')} · ${escapeHtml(item.releaseName||'No GitHub release detected')}</small></div><span class="release-state ${escapeHtml(stateText)}">${escapeHtml(stateText)}</span><div class="release-actions">${links.join('')||'<span class="muted">No links</span>'}</div></article>`}).join('')||'<div class="empty-watch">No release data yet.</div>'}
 
-  if (response.status === 401 && !retried) {
-    const entered = window.prompt('This AI Factory has write protection. Enter its write key:');
-    if (entered) {
-      sessionStorage.setItem('aiFactoryKey', entered);
-      return api(url, options, true);
-    }
-  }
+function renderToday(){const t=state.today||{};byId('todaySummary').innerHTML=`<div><strong>${t.topCount??0}</strong><span>priorities</span></div><div><strong>${t.criticalCount??0}</strong><span>critical</span></div><div><strong>${(t.quietProjects||[]).length}</strong><span>quiet projects</span></div>`;const tasks=t.tasks||[];byId('todayList').innerHTML=tasks.length?tasks.map(task=>`<article class="today-row" data-project="${escapeHtml(task.projectId)}"><span class="rank">${escapeHtml(task.rank)}</span><div><small>P${escapeHtml(task.priority)} · ${escapeHtml(task.source)} · ${escapeHtml(task.projectName)}</small><strong>${escapeHtml(task.title)}</strong>${task.detail?`<p>${escapeHtml(task.detail)}</p>`:''}</div><button class="secondary-button mini-open" data-project="${escapeHtml(task.projectId)}">Open</button></article>`).join(''):'<div class="empty-watch">Nothing urgent. Add next actions in Project Brain.</div>'}
 
-  if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
-  return payload;
-}
+function projectOptions(){return `<option value="">Factory-wide / no project</option>`+state.projects.map(p=>`<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join('')}
+function populateProjectSelects(){['decisionProject','knowledgeProject'].forEach(id=>{const el=byId(id);if(el)el.innerHTML=projectOptions()})}
+function renderDecisionCases(){const target=byId('decisionCases');target.innerHTML=state.decisions.length?state.decisions.map(item=>`<article class="record-card"><div class="record-top"><div><small>${escapeHtml(projectName(item.project_id))} · ${escapeHtml(item.status)}</small><h4>${escapeHtml(item.title)}</h4></div><time>${escapeHtml(formatDate(item.created_at))}</time></div><p><b>Problem:</b> ${escapeHtml(item.problem)}</p>${(item.options||[]).length?`<p><b>Options:</b> ${escapeHtml(item.options.join(' · '))}</p>`:''}${item.recommendation?`<p><b>Recommendation:</b> ${escapeHtml(item.recommendation)}</p>`:''}${item.final_decision?`<p><b>Decision:</b> ${escapeHtml(item.final_decision)}</p>`:''}${item.reason?`<p class="muted"><b>Why:</b> ${escapeHtml(item.reason)}</p>`:''}</article>`).join(''):'<div class="empty-watch">No decision cases yet.</div>'}
+function renderKnowledge(){const target=byId('knowledgeItems');target.innerHTML=state.knowledge.length?state.knowledge.map(item=>`<article class="record-card"><div class="record-top"><div><small>${escapeHtml(projectName(item.project_id))}</small><h4>${escapeHtml(item.title)}</h4></div><time>${escapeHtml(formatDate(item.created_at))}</time></div>${item.problem?`<p><b>What happened:</b> ${escapeHtml(item.problem)}</p>`:''}<p><b>Lesson:</b> ${escapeHtml(item.lesson)}</p>${item.principle?`<p><b>Principle:</b> ${escapeHtml(item.principle)}</p>`:''}${item.content_angle?`<p class="muted"><b>Content angle:</b> ${escapeHtml(item.content_angle)}</p>`:''}</article>`).join(''):'<div class="empty-watch">The mine is empty. Capture the first useful lesson.</div>'}
 
-function toast(message) {
-  els.toast.textContent = message;
-  els.toast.classList.add('show');
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => els.toast.classList.remove('show'), 2300);
-}
+async function loadRecords(){try{const [d,k]=await Promise.all([api('/api/decisions'),api('/api/knowledge')]);state.decisions=d.cases||[];state.knowledge=k.items||[];renderDecisionCases();renderKnowledge()}catch(error){toast(error.message)}}
+async function loadProjects(force=false){els.syncButton.classList.add('loading');els.syncButton.disabled=true;try{const data=await api(`/api/projects${force?'?refresh=1':''}`);state.projects=data.projects||[];state.summary=data.summary||{};state.watchtower=data.watchtower||{};state.releases=data.releases||{};state.today=data.today||{};renderSummary();renderProjects();renderBrainList();renderWatchtower();renderReleases();renderToday();populateProjectSelects();if(state.selectedId){const selected=state.projects.find(p=>p.id===state.selectedId);if(selected)renderDrawer(selected)}if(force)toast('Factory state refreshed')}catch(error){els.projectGrid.innerHTML=`<div class="empty-state">Mission Control could not load: ${escapeHtml(error.message)}</div>`;toast(error.message)}finally{els.syncButton.classList.remove('loading');els.syncButton.disabled=false}}
 
-function attentionNeeded(project) {
-  return ['stale', 'unavailable'].includes(project.github?.activity) || (project.brain?.blockers || []).length > 0;
-}
+function decisionMarkup(decision){return `<article class="decision"><div class="decision-top"><h5>${escapeHtml(decision.title||'Decision')}</h5><time>${escapeHtml(decision.date||'')}</time></div><p>${escapeHtml(decision.decision||'')}</p>${decision.reason?`<p class="reason">Why: ${escapeHtml(decision.reason)}</p>`:''}</article>`}
+function renderDrawer(project){const gh=project.github||{};const brain=project.brain||{};els.drawerTitle.textContent=project.name;els.drawerBody.innerHTML=`<section class="drawer-section"><p class="drawer-section-title">Repository state</p>${gh.error?`<div class="error-note">${escapeHtml(gh.error)}</div>`:`<div class="repo-strip"><div class="repo-chip"><span>Activity</span><b>${escapeHtml(gh.activity||'unknown')}</b></div><div class="repo-chip"><span>Branch</span><b>${escapeHtml(gh.defaultBranch||'—')}</b></div><div class="repo-chip"><span>Build</span><b>${escapeHtml(buildStatusText(gh.build))}</b></div><div class="repo-chip"><span>Last push</span><b>${escapeHtml(formatRelative(gh.pushedAt))}</b></div><div class="repo-chip"><span>Open items</span><b>${escapeHtml(gh.openItems??'—')}</b></div></div>`}</section><section class="drawer-section"><p class="drawer-section-title">Working memory</p><label class="field"><span>Current state</span><textarea id="brainCurrent">${escapeHtml(brain.currentState||'')}</textarea></label><label class="field"><span>Next actions</span><textarea class="short-area" id="brainNext">${escapeHtml((brain.nextActions||[]).join('\n'))}</textarea></label><label class="field"><span>Blockers</span><textarea class="short-area" id="brainBlockers">${escapeHtml((brain.blockers||[]).join('\n'))}</textarea></label><button class="primary-button" id="saveBrain">SAVE PROJECT BRAIN</button></section><section class="drawer-section"><div class="decision-top"><p class="drawer-section-title">Decision log</p><button class="secondary-button" id="toggleDecision">+ ADD DECISION</button></div><div class="decision-form hidden" id="decisionForm"><label class="field"><span>Decision title</span><input id="decisionTitle" placeholder="e.g. Use MapLibre"></label><label class="field"><span>What did we decide?</span><textarea id="decisionText"></textarea></label><label class="field"><span>Why?</span><textarea class="short-area" id="decisionReason"></textarea></label><button class="primary-button" id="saveDecision">RECORD DECISION</button></div><div id="decisionList">${(brain.decisions||[]).length?(brain.decisions||[]).map(decisionMarkup).join(''):'<p class="helper">No decisions recorded yet.</p>'}</div></section>`;byId('saveBrain').addEventListener('click',saveBrain);byId('toggleDecision').addEventListener('click',()=>byId('decisionForm').classList.toggle('hidden'));byId('saveDecision').addEventListener('click',saveDecision)}
+function openDrawer(projectId){if(!projectId)return;const project=state.projects.find(p=>p.id===projectId);if(!project)return;state.selectedId=projectId;renderDrawer(project);els.drawer.classList.add('open');els.drawerBackdrop.classList.add('open');els.drawer.setAttribute('aria-hidden','false');document.body.style.overflow='hidden'}
+function closeDrawer(){els.drawer.classList.remove('open');els.drawerBackdrop.classList.remove('open');els.drawer.setAttribute('aria-hidden','true');document.body.style.overflow='';state.selectedId=null}
 
-function visibleProjects() {
-  if (state.filter === 'active') return state.projects.filter(project => ['active', 'warm'].includes(project.github?.activity));
-  if (state.filter === 'attention') return state.projects.filter(attentionNeeded);
-  return state.projects;
-}
+async function saveBrain(){if(!state.selectedId)return;const button=byId('saveBrain');button.disabled=true;try{await api(`/api/projects/${encodeURIComponent(state.selectedId)}/brain`,{method:'PUT',body:JSON.stringify({currentState:byId('brainCurrent').value,nextActions:lines(byId('brainNext').value),blockers:lines(byId('brainBlockers').value)})});toast('Project Brain saved');await loadProjects(false)}catch(error){toast(error.message)}finally{button.disabled=false}}
+async function saveDecision(){if(!state.selectedId)return;const decision=byId('decisionText').value.trim();if(!decision)return toast('Write the decision first');try{await api(`/api/projects/${encodeURIComponent(state.selectedId)}/decisions`,{method:'POST',body:JSON.stringify({title:byId('decisionTitle').value,decision,reason:byId('decisionReason').value})});toast('Decision recorded');await loadProjects(false)}catch(error){toast(error.message)}}
+async function saveDecisionCase(){const button=byId('saveDecisionCase');button.disabled=true;try{await api('/api/decisions',{method:'POST',body:JSON.stringify({projectId:byId('decisionProject').value,title:byId('decisionTitleMain').value,problem:byId('decisionProblem').value,options:lines(byId('decisionOptions').value),recommendation:byId('decisionRecommendation').value,finalDecision:byId('decisionFinal').value,reason:byId('decisionReasonMain').value})});['decisionTitleMain','decisionProblem','decisionOptions','decisionRecommendation','decisionFinal','decisionReasonMain'].forEach(id=>byId(id).value='');toast('Decision case saved');await loadRecords()}catch(error){toast(error.message)}finally{button.disabled=false}}
+async function saveKnowledge(){const button=byId('saveKnowledge');button.disabled=true;try{await api('/api/knowledge',{method:'POST',body:JSON.stringify({projectId:byId('knowledgeProject').value,title:byId('knowledgeTitle').value,problem:byId('knowledgeProblem').value,lesson:byId('knowledgeLesson').value,principle:byId('knowledgePrinciple').value,contentAngle:byId('knowledgeContent').value})});['knowledgeTitle','knowledgeProblem','knowledgeLesson','knowledgePrinciple','knowledgeContent'].forEach(id=>byId(id).value='');toast('Knowledge saved');await loadRecords()}catch(error){toast(error.message)}finally{button.disabled=false}}
 
-function projectCard(project) {
-  const gh = project.github || {};
-  const activity = gh.activity || 'unknown';
-  const branch = gh.defaultBranch || '—';
-  const commit = gh.latestCommit;
-  const blockerCount = project.brain?.blockers?.length || 0;
-  const fact3 = blockerCount ? `${blockerCount} blocker${blockerCount === 1 ? '' : 's'}` : `${gh.openItems ?? '—'} open items`;
-  return `
-    <article class="project-card" data-project="${escapeHtml(project.id)}" tabindex="0" role="button" aria-label="Open ${escapeHtml(project.name)} project brain">
-      <div class="project-top">
-        <div class="project-name">
-          <span class="project-stage">${escapeHtml(project.stage)}</span>
-          <h4>${escapeHtml(project.name)}</h4>
-        </div>
-        <span class="status-pill status-${escapeHtml(activity)}"><i class="status-dot"></i>${escapeHtml(activity)}</span>
-      </div>
-      <p class="project-purpose">${escapeHtml(project.purpose)}</p>
-      ${gh.error ? `<div class="error-note">${escapeHtml(gh.error)}</div>` : `
-        <div class="project-facts">
-          <div class="fact"><span>Branch</span><b>${escapeHtml(branch)}</b></div>
-          <div class="fact"><span>Last push</span><b>${escapeHtml(formatRelative(gh.pushedAt))}</b></div>
-          <div class="fact"><span>Attention</span><b>${escapeHtml(fact3)}</b></div>
-        </div>
-        <div class="project-footer">
-          <div class="commit-line">${commit ? `<code>${escapeHtml(commit.shortSha)}</code> · ${escapeHtml(commit.message)}` : 'No commit data'}</div>
-          <span class="open-brain">OPEN BRAIN →</span>
-        </div>
-      `}
-    </article>`;
-}
+const titles={mission:'Mission Control',watchtower:'Watchtower',release:'Release Factory',today:'Today / Priority',decision:'Decision Engine',knowledge:'Knowledge Mine',brain:'Project Brain',systems:'Factory Systems'};
+function switchView(viewName){document.querySelectorAll('.nav-item').forEach(button=>button.classList.toggle('active',button.dataset.view===viewName));document.querySelectorAll('.view').forEach(view=>view.classList.remove('active'));byId(`${viewName}View`)?.classList.add('active');els.pageTitle.textContent=titles[viewName]||'AI Factory';els.sidebar.classList.remove('open')}
+document.querySelectorAll('.nav-item').forEach(button=>button.addEventListener('click',()=>switchView(button.dataset.view)));
+document.querySelectorAll('.filter').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.filter').forEach(item=>item.classList.remove('active'));button.classList.add('active');state.filter=button.dataset.filter;renderProjects()}));
+function handleProjectActivation(event){const target=event.target.closest('[data-project]');if(target)openDrawer(target.dataset.project)}
+[els.projectGrid,els.brainList,byId('incidentList'),byId('todayList')].filter(Boolean).forEach(el=>{el.addEventListener('click',handleProjectActivation);el.addEventListener('keydown',event=>{if(['Enter',' '].includes(event.key))handleProjectActivation(event)})});
+els.syncButton.addEventListener('click',async()=>{await loadProjects(true);await loadRecords()});els.closeDrawer.addEventListener('click',closeDrawer);els.drawerBackdrop.addEventListener('click',closeDrawer);els.mobileMenu.addEventListener('click',()=>els.sidebar.classList.toggle('open'));document.addEventListener('keydown',event=>{if(event.key==='Escape')closeDrawer()});byId('saveDecisionCase').addEventListener('click',saveDecisionCase);byId('saveKnowledge').addEventListener('click',saveKnowledge);
 
-function renderProjects() {
-  const projects = visibleProjects();
-  els.projectGrid.innerHTML = projects.length
-    ? projects.map(projectCard).join('')
-    : '<div class="empty-state">No projects match this view.</div>';
-}
-
-function renderBrainList() {
-  els.brainList.innerHTML = state.projects.map(project => {
-    const blockers = project.brain?.blockers?.length || 0;
-    const next = project.brain?.nextActions?.[0] || 'No next action recorded';
-    return `
-      <article class="brain-row" data-project="${escapeHtml(project.id)}" tabindex="0" role="button">
-        <div><h4>${escapeHtml(project.name)}</h4><small>${escapeHtml(project.stage)}</small></div>
-        <p class="brain-state">${escapeHtml(project.brain?.currentState || 'No state recorded.')}</p>
-        <p class="brain-next">Next: ${escapeHtml(next)}</p>
-        <div class="brain-count"><b>${blockers}</b> blockers</div>
-      </article>`;
-  }).join('');
-}
-
-function renderSummary() {
-  const s = state.summary || {};
-  document.getElementById('statTotal').textContent = s.total ?? '—';
-  document.getElementById('statActive').textContent = s.active ?? '—';
-  document.getElementById('statAttention').textContent = s.attention ?? '—';
-  document.getElementById('statBlockers').textContent = s.blockers ?? '—';
-  els.lastSync.textContent = s.lastSynced ? formatDate(s.lastSynced) : '—';
-
-  const auth = Boolean(s.githubAuthenticated);
-  els.connection.className = `connection ${auth ? 'connected' : 'limited'}`;
-  els.connection.innerHTML = `
-    <span class="pulse"></span>
-    <div>
-      <strong>${auth ? 'GitHub connected' : 'GitHub public mode'}</strong>
-      <small>${auth ? 'Private + public repos' : 'Add GITHUB_TOKEN for private repos/builds'}</small>
-    </div>`;
-}
-
-async function loadProjects(force = false) {
-  els.syncButton.classList.add('loading');
-  els.syncButton.disabled = true;
-  try {
-    const data = await api(`/api/projects${force ? '?refresh=1' : ''}`);
-    state.projects = data.projects || [];
-    state.summary = data.summary || {};
-    renderSummary();
-    renderProjects();
-    renderBrainList();
-    if (state.selectedId) {
-      const selected = state.projects.find(project => project.id === state.selectedId);
-      if (selected) renderDrawer(selected);
-    }
-    if (force) toast('GitHub state refreshed');
-  } catch (error) {
-    els.projectGrid.innerHTML = `<div class="empty-state">Mission Control could not load: ${escapeHtml(error.message)}</div>`;
-    toast(error.message);
-  } finally {
-    els.syncButton.classList.remove('loading');
-    els.syncButton.disabled = false;
-  }
-}
-
-function buildStatusText(build) {
-  if (!build) return 'Unknown';
-  if (build.conclusion) return build.conclusion;
-  if (build.status === 'not-checked') return 'Token needed';
-  return build.status || 'Unknown';
-}
-
-function decisionMarkup(decision) {
-  return `
-    <article class="decision">
-      <div class="decision-top"><h5>${escapeHtml(decision.title || 'Decision')}</h5><time>${escapeHtml(decision.date || '')}</time></div>
-      <p>${escapeHtml(decision.decision || '')}</p>
-      ${decision.reason ? `<p class="reason">Why: ${escapeHtml(decision.reason)}</p>` : ''}
-    </article>`;
-}
-
-function renderDrawer(project) {
-  const gh = project.github || {};
-  const brain = project.brain || {};
-  els.drawerTitle.textContent = project.name;
-  els.drawerBody.innerHTML = `
-    <section class="drawer-section">
-      <p class="drawer-section-title">Repository state</p>
-      ${gh.error ? `<div class="error-note">${escapeHtml(gh.error)}</div>` : `
-        <div class="repo-strip">
-          <div class="repo-chip"><span>Activity</span><b>${escapeHtml(gh.activity || 'unknown')}</b></div>
-          <div class="repo-chip"><span>Branch</span><b>${escapeHtml(gh.defaultBranch || '—')}</b></div>
-          <div class="repo-chip"><span>Build</span><b>${escapeHtml(buildStatusText(gh.build))}</b></div>
-          <div class="repo-chip"><span>Last push</span><b>${escapeHtml(formatRelative(gh.pushedAt))}</b></div>
-          <div class="repo-chip"><span>Open items</span><b>${escapeHtml(gh.openItems ?? '—')}</b></div>
-          <div class="repo-chip"><span>Visibility</span><b>${escapeHtml(gh.visibility || '—')}</b></div>
-        </div>
-      `}
-    </section>
-
-    <section class="drawer-section">
-      <p class="drawer-section-title">Working memory</p>
-      <label class="field"><span>Current state</span><textarea id="brainCurrent">${escapeHtml(brain.currentState || '')}</textarea></label>
-      <label class="field"><span>Next actions</span><textarea class="short-area" id="brainNext">${escapeHtml((brain.nextActions || []).join('\n'))}</textarea></label>
-      <p class="helper">One action per line. Keep this to the smallest set of things that actually move the project.</p>
-      <label class="field"><span>Blockers</span><textarea class="short-area" id="brainBlockers">${escapeHtml((brain.blockers || []).join('\n'))}</textarea></label>
-      <button class="primary-button" id="saveBrain">SAVE PROJECT BRAIN</button>
-    </section>
-
-    <section class="drawer-section">
-      <div class="decision-top">
-        <p class="drawer-section-title">Decision log</p>
-        <button class="secondary-button" id="toggleDecision">+ ADD DECISION</button>
-      </div>
-      <div class="decision-form hidden" id="decisionForm">
-        <label class="field"><span>Decision title</span><input id="decisionTitle" placeholder="e.g. Use MapLibre for the MVP"></label>
-        <label class="field"><span>What did we decide?</span><textarea id="decisionText"></textarea></label>
-        <label class="field"><span>Why?</span><textarea class="short-area" id="decisionReason"></textarea></label>
-        <button class="primary-button" id="saveDecision">RECORD DECISION</button>
-      </div>
-      <div id="decisionList">
-        ${(brain.decisions || []).length ? (brain.decisions || []).map(decisionMarkup).join('') : '<p class="helper">No decisions recorded yet.</p>'}
-      </div>
-    </section>`;
-
-  document.getElementById('saveBrain').addEventListener('click', saveBrain);
-  document.getElementById('toggleDecision').addEventListener('click', () => document.getElementById('decisionForm').classList.toggle('hidden'));
-  document.getElementById('saveDecision').addEventListener('click', saveDecision);
-}
-
-function openDrawer(projectId) {
-  const project = state.projects.find(item => item.id === projectId);
-  if (!project) return;
-  state.selectedId = projectId;
-  renderDrawer(project);
-  els.drawer.classList.add('open');
-  els.drawerBackdrop.classList.add('open');
-  els.drawer.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeDrawer() {
-  els.drawer.classList.remove('open');
-  els.drawerBackdrop.classList.remove('open');
-  els.drawer.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = '';
-  state.selectedId = null;
-}
-
-async function saveBrain() {
-  if (!state.selectedId) return;
-  const button = document.getElementById('saveBrain');
-  button.disabled = true;
-  try {
-    await api(`/api/projects/${encodeURIComponent(state.selectedId)}/brain`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        currentState: document.getElementById('brainCurrent').value,
-        nextActions: lines(document.getElementById('brainNext').value),
-        blockers: lines(document.getElementById('brainBlockers').value)
-      })
-    });
-    toast('Project Brain saved');
-    await loadProjects(false);
-  } catch (error) {
-    toast(error.message);
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function saveDecision() {
-  if (!state.selectedId) return;
-  const button = document.getElementById('saveDecision');
-  const decision = document.getElementById('decisionText').value.trim();
-  if (!decision) return toast('Write the decision first');
-  button.disabled = true;
-  try {
-    await api(`/api/projects/${encodeURIComponent(state.selectedId)}/decisions`, {
-      method: 'POST',
-      body: JSON.stringify({
-        title: document.getElementById('decisionTitle').value,
-        decision,
-        reason: document.getElementById('decisionReason').value
-      })
-    });
-    toast('Decision recorded');
-    await loadProjects(false);
-  } catch (error) {
-    toast(error.message);
-  } finally {
-    button.disabled = false;
-  }
-}
-
-function switchView(viewName) {
-  document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.view === viewName));
-  document.querySelectorAll('.view').forEach(view => view.classList.remove('active'));
-  document.getElementById(`${viewName}View`).classList.add('active');
-  const titles = { mission: 'Mission Control', brain: 'Project Brain', systems: 'Factory Systems' };
-  els.pageTitle.textContent = titles[viewName] || 'AI Factory';
-  els.sidebar.classList.remove('open');
-}
-
-document.querySelectorAll('.nav-item').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
-document.querySelectorAll('.filter').forEach(button => button.addEventListener('click', () => {
-  document.querySelectorAll('.filter').forEach(item => item.classList.remove('active'));
-  button.classList.add('active');
-  state.filter = button.dataset.filter;
-  renderProjects();
-}));
-
-function handleProjectActivation(event) {
-  const card = event.target.closest('[data-project]');
-  if (card) openDrawer(card.dataset.project);
-}
-
-els.projectGrid.addEventListener('click', handleProjectActivation);
-els.brainList.addEventListener('click', handleProjectActivation);
-els.projectGrid.addEventListener('keydown', event => { if (['Enter', ' '].includes(event.key)) handleProjectActivation(event); });
-els.brainList.addEventListener('keydown', event => { if (['Enter', ' '].includes(event.key)) handleProjectActivation(event); });
-els.syncButton.addEventListener('click', () => loadProjects(true));
-els.closeDrawer.addEventListener('click', closeDrawer);
-els.drawerBackdrop.addEventListener('click', closeDrawer);
-els.mobileMenu.addEventListener('click', () => els.sidebar.classList.toggle('open'));
-document.addEventListener('keydown', event => { if (event.key === 'Escape') closeDrawer(); });
-
-loadProjects(false);
+Promise.all([loadProjects(false),loadRecords()]);
