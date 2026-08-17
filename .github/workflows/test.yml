@@ -21,5 +21,7 @@ jobs:
         with:
           node-version: 24
       - run: npm install
+      - run: node --check public/app.js
+      - run: node --check src/worker.js
       - run: npm test
       - run: npx wrangler deploy --dry-run
