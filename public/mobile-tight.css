@@ -1,0 +1,49 @@
+/* Mobile viewport hardening: keep every factory screen inside the phone width. */
+html,body{max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+.shell,.main,.view,.view.active{min-width:0;max-width:100%}
+.main{overflow-x:clip}
+img,svg,canvas,video{max-width:100%;height:auto}
+input,textarea,select,button{max-width:100%}
+
+/* Long repository names, URLs, evidence and diagnostics must wrap instead of widening the page. */
+.project-card,.brain-row,.system-card,.form-card,.record-card,.bridge-row,.doctor-check,.doctor-next,.doctor-host-card,.drawer-section{min-width:0;max-width:100%}
+.project-card p,.brain-row p,.system-card p,.record-card p,.bridge-copy,.bridge-evidence,.doctor-copy,.doctor-copy p,.doctor-fix,.doctor-next p,.doctor-host-card strong{min-width:0;overflow-wrap:anywhere;word-break:break-word}
+
+@media(max-width:760px){
+  .main{width:100%;padding-left:12px;padding-right:12px;padding-bottom:42px}
+  .topbar{width:100%;gap:12px}
+  .topbar>div{min-width:0}
+  .topbar h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sync-button{flex:0 0 auto}
+  .hero{width:100%;padding-top:25px;padding-bottom:20px}
+  .hero h2{font-size:clamp(24px,7.2vw,28px);line-height:1.08}
+  .section-heading{gap:12px;flex-wrap:wrap}
+  .filters{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+  .filter{white-space:nowrap}
+  .stats,.project-grid,.brain-list,.system-grid,.watch-stats,.incident-list,.release-list,.today-list,.record-list,.bridge-list,.doctor-checks{width:100%;min-width:0}
+  .stat-card,.project-card,.brain-row,.system-card{padding-left:14px;padding-right:14px}
+  .project-top,.project-footer,.record-top,.release-row,.incident-row,.today-row{min-width:0}
+  .project-facts{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .fact{min-width:0}
+  .form-grid{grid-template-columns:1fr!important}
+  .drawer{width:100%;max-width:100%}
+  .drawer-header,.drawer-body{width:100%;max-width:100%}
+  .repo-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .repo-chip{min-width:0}
+  .toast{width:calc(100% - 24px);max-width:420px;text-align:center}
+}
+
+@media(max-width:430px){
+  .main{padding-left:10px;padding-right:10px}
+  .topbar{height:72px}
+  .topbar h1{font-size:16px}
+  .hero h2{font-size:24px}
+  .stats{border-radius:15px}
+  .stat-card{min-height:106px;padding:14px 12px}
+  .stat-card strong{font-size:25px}
+  .section-heading{margin-top:27px}
+  .project-card{padding:16px 14px}
+  .system-card{padding:17px 14px}
+  .brain-row{padding:15px 14px}
+  .repo-strip{grid-template-columns:1fr 1fr}
+}
