@@ -1,0 +1,8 @@
+{
+  "service": "ai-factory",
+  "proof": "2026-08-18T02:05-route-debug",
+  "expectedBridgeRoutes": [
+    "/api/ghostwriter-bridge",
+    "/api/ghostwriter-bridge/queue"
+  ]
+}
