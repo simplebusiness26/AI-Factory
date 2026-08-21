@@ -1,4 +1,4 @@
-import legacyWorker from './worker.js';
+import legacyWorker from './os-entry.js';
 import { handleFactoryV2Api } from './factory-v2.mjs';
 
 const encoder = new TextEncoder();
@@ -101,5 +101,8 @@ export default {
       console.error(JSON.stringify({event:'factory_v2_request_error',message:error?.message||String(error)}));
       return json({error:error?.message||'Internal server error.'},500);
     }
+  },
+  async scheduled(controller,env,ctx){
+    if(typeof legacyWorker.scheduled==='function') return legacyWorker.scheduled(controller,env,ctx);
   }
 };
