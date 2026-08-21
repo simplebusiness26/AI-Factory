@@ -22,6 +22,7 @@ function bearerToken(request){
 async function authorizedV2(request,env){
   const machine=bearerToken(request)||request.headers.get('x-factory-token')||'';
   if(env.FACTORY_WRITE_TOKEN && await safeEqual(machine,env.FACTORY_WRITE_TOKEN)) return true;
+  if(env.AI_FACTORY_KEY && await safeEqual(machine,env.AI_FACTORY_KEY)) return true;
   const human=request.headers.get('x-ai-factory-key')||'';
   if(env.AI_FACTORY_KEY && await safeEqual(human,env.AI_FACTORY_KEY)) return true;
   return false;
