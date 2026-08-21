@@ -1,11 +1,14 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ai-factory",
-  "main": "src/os-entry.js",
+  "main": "src/worker-v2.js",
   "compatibility_date": "2026-08-17",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
   "keep_vars": true,
+  "vars": {
+    "OS_URL": "https://personal-operating-system.simplebussiness26.workers.dev"
+  },
   "secrets": {
     "required": ["AI_FACTORY_KEY", "GITHUB_TOKEN"]
   },

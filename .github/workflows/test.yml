@@ -24,5 +24,7 @@ jobs:
       - run: node --check public/app.js
       - run: node --check public/doctor.js
       - run: node --check src/worker.js
+      - run: node --check src/worker-v2.js
+      - run: node --check src/factory-v2.mjs
       - run: npm test
       - run: npx wrangler deploy --dry-run
