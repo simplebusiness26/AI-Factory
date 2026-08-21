@@ -33,6 +33,57 @@ function rewriteToAsset(request,path){
   return new Request(url.toString(),request);
 }
 
+function normalizeOperatingSystemEnvelope(payload){
+  if(!payload?.job) return payload;
+  const job=payload.job;
+  return {
+    id:job.id,
+    sourceSystem:payload.source||'operating-system',
+    sourceExternalId:job.id,
+    projectId:job.projectId||null,
+    projectName:job.projectName||null,
+    repository:job.repository||null,
+    objective:job.objective,
+    priority:job.priority,
+    constraints:[
+      `Operating System risk level: ${job.riskLevel||'unknown'}`,
+      'Keep implementation isolated unless the work order explicitly grants broader authority.'
+    ],
+    acceptanceCriteria:Array.isArray(job.acceptanceCriteria)?job.acceptanceCriteria:[],
+    authority:job.authority||{
+      mayCreateBranch:true,
+      mayOpenPullRequest:true,
+      mayMerge:false,
+      mayDeployProduction:false,
+      maySpend:false,
+      mayExternalWrite:false
+    },
+    budget:job.budget||{},
+    source:{system:payload.source||'operating-system',externalId:job.id}
+  };
+}
+
+async function handleWorkOrderIngress(request,env){
+  const payload=await request.json();
+  const normalized=normalizeOperatingSystemEnvelope(payload);
+  const forwarded=new Request(request.url,{
+    method:'POST',
+    headers:new Headers(request.headers),
+    body:JSON.stringify(normalized)
+  });
+  const response=await handleFactoryV2Api(forwarded,env);
+  let body;
+  try{body=await response.clone().json()}catch{return response}
+  if(body?.workOrder?.status==='blocked'){
+    return json({
+      ...body,
+      status:'blocked',
+      blockedReason:body.workOrder.blocked_reason||'Required Factory capability is not ready.'
+    },409);
+  }
+  return json({...body,status:'accepted'},response.status);
+}
+
 export default {
   async fetch(request,env,ctx){
     const url=new URL(request.url);
@@ -41,6 +92,7 @@ export default {
       if(url.pathname.startsWith('/api/v2/')){
         if(url.pathname==='/api/v2/health') return handleFactoryV2Api(request,env);
         if(!(await authorizedV2(request,env))) return json({error:'Factory V2 access token required.'},401);
+        if(url.pathname==='/api/v2/work-orders'&&request.method==='POST') return handleWorkOrderIngress(request,env);
         return handleFactoryV2Api(request,env);
       }
       return legacyWorker.fetch(request,env,ctx);
