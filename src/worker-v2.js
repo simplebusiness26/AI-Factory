@@ -11,7 +11,11 @@ async function safeEqual(provided, expected) {
     crypto.subtle.digest('SHA-256',encoder.encode(provided)),
     crypto.subtle.digest('SHA-256',encoder.encode(expected))
   ]);
-  return crypto.subtle.timingSafeEqual(a,b);
+  const aa=new Uint8Array(a),bb=new Uint8Array(b);
+  if(aa.length!==bb.length)return false;
+  let diff=0;
+  for(let i=0;i<aa.length;i+=1)diff|=aa[i]^bb[i];
+  return diff===0;
 }
 
 function bearerToken(request){
